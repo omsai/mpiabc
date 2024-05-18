@@ -1,0 +1,21 @@
+view = /home/omsai/src/spack/var/spack/environments/mpi/.spack-env/view
+
+cflags = $
+-g $
+-Wall $
+-DHAVE_INLINE $
+-I$view/include
+
+ldflags = $
+-L$view/lib $
+-Wl,-rpath=$view/lib $
+-lgsl
+
+rule cc
+  command = gcc -c $cflags -o $out $in
+
+rule link
+  command = gcc $in $ldflags -o $out
+
+build model : link model.o
+build model.o : cc model.c
