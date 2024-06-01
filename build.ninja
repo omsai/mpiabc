@@ -17,5 +17,13 @@ rule cc
 rule link
   command = gcc $in $ldflags -o $out
 
+rule doc
+  command = doxygen Doxyfile
+
+rule doc-pdf
+  command = gmake -C latex/
+
 build model : link model.o
 build model.o : cc model.c
+build html/index.html latex/Makefile : doc model.c
+build latex/refman.pdf : doc-pdf latex/Makefile

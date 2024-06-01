@@ -1,3 +1,5 @@
 *.o
 .ninja_log
+html/
+latex/
 model

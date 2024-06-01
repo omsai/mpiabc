@@ -3,7 +3,16 @@
 #include <gsl/gsl_block.h>
 #include <gsl/gsl_odeiv2.h>
 
+/**
+   The classic predator-prey ordinary differential equation (ODE) model.
 
+   @param t Time variable necessary for the ODE solver but otherwise unused.
+   @param y Equation RHS variables that are treated as read-only.
+   @param dydt Equation LHS variables updated by the ODE solver.
+   @param params_ Equation parameters stored in a
+   [`gsl_block`](https://www.gnu.org/software/gsl/doc/html/vectors.html).
+   @return GSL_SUCCESS
+ */
 int
 lotka_volterra(double t, const double y[], double dydt[], void* params_) {
     (void)(t);			/* Suppress unused parameter warning. */
