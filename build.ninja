@@ -20,7 +20,7 @@ rule link
   command = gcc $in $ldflags -o $out
 
 rule doc-tex
-  command = doxygen Doxyfile
+  command = doxygen Doxyfile && sed -i '/\input{README_8md}/d' latex/refman.tex
 
 rule doc-pdf
   command = gmake -C latex/
