@@ -11,19 +11,22 @@ ldflags = $
 -Wl,-rpath=$view/lib $
 -lgsl
 
+dir_doc = latex
+
 rule cc
   command = gcc -c $cflags -o $out $in
 
 rule link
   command = gcc $in $ldflags -o $out
 
-rule doc
+rule doc-tex
   command = doxygen Doxyfile
 
 rule doc-pdf
   command = gmake -C latex/
+  pool = console
 
 build model : link model.o
 build model.o : cc model.c
-build html/index.html latex/Makefile : doc model.c
-build latex/refman.pdf : doc-pdf latex/Makefile
+build $dir_doc/Makefile : doc-tex model.c README.md
+build $dir_doc/refman.pdf : doc-pdf $dir_doc/Makefile

@@ -1,3 +1,9 @@
+/**
+   @file model.c
+
+   @brief Model with parameters to calibrate using MPI-ABC.
+ */
+
 #include <stdio.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_block.h>
