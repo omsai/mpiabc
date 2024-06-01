@@ -28,5 +28,5 @@ rule doc-pdf
 
 build model : link model.o
 build model.o : cc model.c
-build $dir_doc/Makefile : doc-tex model.c README.md
+build $dir_doc/Makefile : doc-tex Doxyfile model.c README.md
 build $dir_doc/refman.pdf : doc-pdf $dir_doc/Makefile
