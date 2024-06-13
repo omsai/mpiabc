@@ -15,6 +15,8 @@ desirable features:
 2. *Checkpointing and resuming* calibrations is generally not supported by
    higher-level language ABC-SMC samplers.
 3. *Parallel logging* facilities are also not supported.
+4. *Multivariate parameters* like Dirichlet distributions e.g. of observed
+   infection outcomes.
 
 Such limitations jusfify the additional time and complexity involved with using
 lower-level languages to support these and other desirable features with more
