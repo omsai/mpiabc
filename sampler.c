@@ -8,6 +8,7 @@
 
 #include <sampler.h>
 
+#include <gsl/gsl_math.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_statistics_double.h>
@@ -17,9 +18,12 @@
    Silverman's rule of thumb to calculate Gaussian bandwidth parameter.
 
    @param x Sorted input vector.
+   @return Bandwidth of Gaussian distribution.
+
+   @see kde
 */
 double
-silverman(gsl_block* x)
+silverman(gsl_vector* x)
 {
   double sd = gsl_stats_sd(x->data, 1, x->size);
   double iqr =
@@ -32,34 +36,26 @@ silverman(gsl_block* x)
 /**
    1-D gaussian kernel density estimate.
    
-   @param y Output kernel density for x.
-   @param x Input vector to evaluate the kernel density for each point in data.
-   @param data Input vector.
-   @param h Gaussian bandwidth parameter.
-   @return GSL_SUCCESS
+   @param x Input point to evaluate the kernel density.
+   @param params_ data Input vector to construct the kernel density and
+                  Gaussian bandwidth parameter.
+   @return Gaussian kernel density.
 
    @see silverman
  */
-int
-kde(gsl_block** y,
-    gsl_block* x,
-    gsl_block* data,
-    double h)
+double
+kde(double x, void* params_)
 {
-  *y = gsl_block_calloc(x->size);
-  /* Ideally, one would use a sparse-FFT here, but instead the following is a
-     manual convolution of our sparse data with the assumption that there are
-     relatively few data points. */
-  for (size_t i = 0; i < x->size; ++i) {
-    for (size_t j = 0; j < data->size; ++j) {
-      (*y)->data[i] += gsl_ran_gaussian_pdf(data->data[j] - x->data[i], h);
-    }
+  kde_params_t* params = (kde_params_t*)params_;
+  gsl_vector* data = params->data;
+  double h = params->bandwidth;
+  double y = 0;
+  for (size_t i = 0; i < data->size; ++i) {
+    y += gsl_ran_gaussian_pdf(gsl_vector_get(data, i) - x, h);
   }
-  for (size_t i = 0; i < x->size; ++i) {
-    (*y)->data[i] /= data->size;
-  }
-  return GSL_SUCCESS;
+  return y / data->size;
 }
+
 
 /**
    ABC-SMC algorithm 4.8 in \cite sisson2019.
@@ -73,14 +69,16 @@ kde(gsl_block** y,
    @param alpha Control the effective sample size.
    @param sum_stat Vector of summary statistics.
    @return GSL_SUCCESS
+
+   @see kde
  */
 int
 abc_smc(gsl_block* params,
-	gsl_block* (*target)(gsl_block*),
-	double (*kernel)(double),
+	gsl_function* target,
+	gsl_function *kernel,
 	int n,
-	double (*sampling)(double),
-	double (*proposal)(double, double),
+	gsl_function* sampling,
+	gsl_function* proposal,
 	int alpha,
 	gsl_block* sum_stat)
 {

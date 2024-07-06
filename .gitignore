@@ -1,4 +1,3 @@
-*.gnuplot
 *.o
 *.so
 .ninja_log

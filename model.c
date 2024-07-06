@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include <gsl/gsl_errno.h>
-#include <gsl/gsl_block.h>
+#include <gsl/gsl_vector.h>
 #include <gsl/gsl_odeiv2.h>
 
 
@@ -24,11 +24,11 @@
 int
 lotka_volterra(double t, const double y[], double dydt[], void* params_) {
     (void)(t);			/* Suppress unused parameter warning. */
-    gsl_block* params = params_;
-    double a = params->data[0];
-    double b = params->data[1];
-    double c = params->data[2];
-    double d = params->data[3];
+    gsl_vector* params = params_;
+    double a = gsl_vector_get(params, 0);
+    double b = gsl_vector_get(params, 1);
+    double c = gsl_vector_get(params, 2);
+    double d = gsl_vector_get(params, 3);
 
     dydt[0] =  a * y[0] -     b * y[0] * y[1];
     dydt[1] = -c * y[1] + d * b * y[0] * y[1];
@@ -39,14 +39,14 @@ lotka_volterra(double t, const double y[], double dydt[], void* params_) {
 
 int
 main(void) {
-    gsl_block* params = gsl_block_alloc(4);
+    gsl_vector* params = gsl_vector_alloc(4);
     if (params == NULL) {
 	GSL_ERROR("could not allocate params", ENOMEM);
     }
-    params->data[0] = 1.0;	/* a. */
-    params->data[1] = 1.0;	/* b (NB: detuned from 0.1). */
-    params->data[2] = 1.5;	/* c. */
-    params->data[3] = 0.75;	/* d. */
+    gsl_vector_set(params, 0, 1.00); /* a. */
+    gsl_vector_set(params, 1, 1.00); /* b (NB: detuned from 0.1). */
+    gsl_vector_set(params, 2, 1.50); /* c. */
+    gsl_vector_set(params, 3, 0.75); /* d. */
     gsl_odeiv2_system model = {
 	lotka_volterra,		/* ODE function. */
 	NULL,			/* Derivative elements. */
@@ -67,13 +67,13 @@ main(void) {
 	int status = gsl_odeiv2_driver_apply(driver, &t, ti, y);
 	if (status != GSL_SUCCESS) {
 	    gsl_odeiv2_driver_free(driver);
-	    gsl_block_free(params);
+	    gsl_vector_free(params);
 	    GSL_ERROR("ODE failed", status);
 	}
 	printf("%.5e %.5e %.5e\n", t, y[0], y[1]);
     }
 
     gsl_odeiv2_driver_free(driver);
-    gsl_block_free(params);
+    gsl_vector_free(params);
     return 0;
 }
