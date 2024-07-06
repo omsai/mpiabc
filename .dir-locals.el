@@ -3,4 +3,5 @@
 
 ((c-mode
   (flycheck-gcc-include-path
-   "/home/omsai/src/spack/var/spack/environments/mpi/.spack-env/view/include")))
+   "."
+   "/home/omsai/src/spack/var/spack/environments/mpi-abc/.spack-env/view/include")))

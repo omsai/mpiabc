@@ -1,5 +1,8 @@
+*.gnuplot
 *.o
+*.so
 .ninja_log
 html/
 latex/
 model
+test_abc

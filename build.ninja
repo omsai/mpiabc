@@ -4,20 +4,29 @@ cflags = $
 -g $
 -Wall $
 -DHAVE_INLINE $
--I$view/include
+-I$view/include $
+-I.
 
 ldflags = $
 -L$view/lib $
+-L. $
 -Wl,-rpath=$view/lib $
--lgsl
+-lgsl $
+-lm
 
 dir_doc = latex
 
 rule cc
-  command = gcc -c $cflags -o $out $in
+  command = gcc -o $out -c $cflags $in
 
-rule link
-  command = gcc $in $ldflags -o $out
+rule exe
+  command = gcc -o $out $in $ldflags
+
+rule lib
+  command = gcc -o $out $in -shared $ldflags
+
+rule abcexe
+  command = gcc -o $out $in $ldflags -lcheck -Wl,-rpath=. -labc
 
 rule doc-tex
   command = doxygen Doxyfile && sed -i '/\input{README_8md}/d' latex/refman.tex
@@ -26,7 +35,11 @@ rule doc-pdf
   command = gmake -C latex/
   pool = console
 
-build model : link model.o
+build model : exe model.o
 build model.o : cc model.c
-build $dir_doc/Makefile : doc-tex Doxyfile model.c README.md
+build libabc.so : lib sampler.o
+build sampler.o : cc sampler.c
+build test_abc : abcexe test_abc.o | libabc.so
+build test_abc.o : cc test_abc.c
+build $dir_doc/Makefile : doc-tex Doxyfile model.c sampler.c sampler.h abc.h test_abc.c README.md
 build $dir_doc/refman.pdf : doc-pdf $dir_doc/Makefile

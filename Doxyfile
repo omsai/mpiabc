@@ -106,7 +106,7 @@ SHOW_FILES             = YES
 SHOW_NAMESPACES        = YES
 FILE_VERSION_FILTER    =
 LAYOUT_FILE            =
-CITE_BIB_FILES         =
+CITE_BIB_FILES         = citations.bib
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
 #---------------------------------------------------------------------------
@@ -294,7 +294,7 @@ PDF_HYPERLINKS         = YES
 USE_PDFLATEX           = YES
 LATEX_BATCHMODE        = YES
 LATEX_HIDE_INDICES     = NO
-LATEX_BIB_STYLE        = plain
+LATEX_BIB_STYLE        = abbrvnat
 LATEX_EMOJI_DIRECTORY  =
 #---------------------------------------------------------------------------
 # Configuration options related to the RTF output

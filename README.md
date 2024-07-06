@@ -39,6 +39,7 @@ spack add gsl+external-cblas
 spack add dmtcp
 spack add doxygen
 spack add ninja
+spack add check
 spack concretize
 spack install
 ```
