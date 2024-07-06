@@ -7,6 +7,7 @@
 #include <abc.h>
 
 #include <check.h>
+#include <gsl/gsl_integration.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 
