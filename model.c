@@ -5,9 +5,11 @@
  */
 
 #include <stdio.h>
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_block.h>
 #include <gsl/gsl_odeiv2.h>
+
 
 /**
    The classic predator-prey ordinary differential equation (ODE) model.
@@ -68,7 +70,7 @@ main(void) {
 	    gsl_block_free(params);
 	    GSL_ERROR("ODE failed", status);
 	}
-	printf ("%.5e %.5e %.5e\n", t, y[0], y[1]);
+	printf("%.5e %.5e %.5e\n", t, y[0], y[1]);
     }
 
     gsl_odeiv2_driver_free(driver);
