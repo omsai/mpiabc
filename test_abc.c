@@ -32,6 +32,7 @@ START_TEST(test_kde)
   /* Integrate the kde function. */
   double h = silverman(data);
   //printf("Silverman rule of thumb (h): %.5e\n", h);
+  ck_assert_double_gt(h, 0);
   kde_params_t kde_params = {data, h};
   gsl_function kde_f;
   kde_f.function = &kde;
