@@ -17,6 +17,17 @@
 /**
    Silverman's rule of thumb to calculate Gaussian bandwidth parameter.
 
+   The formula used is:
+   \f{eqnarray*}{
+   h &=& 0.9 \min \left( \sigma,
+                        {\displaystyle\frac{\mathrm{IQR}}{1.34}} \right)
+            n ^{-\frac{1}{5}} \\
+   \mathrm{where,}& \\
+   \sigma &\equiv& \textrm{standard deviation of } x \\
+   \mathrm{IQR} &\equiv& \textrm{inter-quartile range of } x \\
+   n &\equiv& \textrm{cadinality of } x \\
+   \f}
+
    @param x Sorted input vector.
    @return Bandwidth of Gaussian distribution.
 
@@ -34,7 +45,17 @@ silverman(gsl_vector* x)
 
 
 /**
-   1-D gaussian kernel density estimate.
+   1-D Gaussian kernel density estimate.
+
+   The formula used is:
+   \f{eqnarray*}{
+   \hat{f}_h(x) &=& \frac{1}{n}
+                    \sum_i \mathcal{N} ( x_i - x, h ) \\
+   \mathrm{where,}& \\
+   n &\equiv& \textrm{cardinality of } x \\
+   \mathcal{N}(\mu, \sigma) &\equiv&
+     \textrm{Normal / Gaussian distribution function} \	\
+   \f}
    
    @param x Input point to evaluate the kernel density.
    @param params_ data Input vector to construct the kernel density and
