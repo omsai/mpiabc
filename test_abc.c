@@ -46,6 +46,7 @@ START_TEST(test_ode)
   }
 
   /* Cleanup. */
+  gsl_matrix_free(outcomes);
   gsl_vector_free(params);
 }
 
