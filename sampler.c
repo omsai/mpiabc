@@ -82,35 +82,32 @@ kde(double x, void* params_)
    ABC-SMC algorithm 4.8 in \cite sisson2019.
 
    @param params Output set of weighted parameter vectors.
-   @param target Target model posterior density.
+   @param model Target model posterior density.
    @param kernel Smoothing kernel function.
    @param n Number of parameters to calibrate (maybe).
    @param sampling Sampling density.
    @param proposal Proposal density.
    @param alpha Control the effective sample size.
-   @param sum_stat Vector of summary statistics.
    @return GSL_SUCCESS
 
    @see kde
  */
 int
-abc_smc(gsl_block* params,
-	gsl_function* target,
+abc_smc(gsl_matrix* params,
+	gsl_function* model,
 	gsl_function *kernel,
 	int n,
 	gsl_function* sampling,
 	gsl_function* proposal,
-	int alpha,
-	gsl_block* sum_stat)
+	int alpha)
 {
   (void)params;
-  (void)target;
+  (void)model;
   (void)kernel;
   (void)n;
   (void)sampling;
   (void)proposal;
   (void)alpha;
-  (void)sum_stat;
   //gsl_sort(data->data, 1, data->size);
   return GSL_SUCCESS;
 }

@@ -5,6 +5,7 @@
 *.so
 .ninja_log
 html/
+infer
 latex/
 model
 test_abc

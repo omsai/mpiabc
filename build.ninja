@@ -3,6 +3,7 @@ view = /home/omsai/src/spack/var/spack/environments/mpi-abc/.spack-env/view
 cflags = $
 -g $
 -Wall $
+-fpic $
 -DHAVE_INLINE $
 -I$view/include $
 -I.
@@ -14,16 +15,19 @@ ldflags = $
 -lgsl $
 -lm
 
+ldflags_exe = $
+$ldflags $
+-Wl,-rpath=. $
+-labc
+
 cflags_test = $
 $cflags $
 -fprofile-arcs $
 -ftest-coverage
 
 ldflags_test = $
-$ldflags $
--lcheck $
--Wl,-rpath=. $
--labc
+$ldflags_exe $
+-lcheck
 
 dir_doc = latex
 
@@ -31,7 +35,7 @@ rule cc
   command = gcc -o $out -c $cflags $in
 
 rule exe
-  command = gcc -o $out $in $ldflags
+  command = gcc -o $out $in $ldflags_exe
 
 rule lib
   command = gcc -o $out $in -shared $ldflags
@@ -46,10 +50,15 @@ rule doc-pdf
   command = gmake -C latex/
   pool = console
 
-build model : exe model.o
+build infer.o : cc infer.c
 build model.o : cc model.c
-build libabc.so : lib sampler.o
 build sampler.o : cc sampler.c
-build test_abc : test sampler.c test_abc.c | libabc.so
-build $dir_doc/Makefile : doc-tex Doxyfile model.c sampler.c sampler.h abc.h README.md
+build libabc.so : lib model.o sampler.o
+build infer : exe infer.o | libabc.so
+build test_abc : test model.c sampler.c test_abc.c | libabc.so
+build $dir_doc/Makefile : doc-tex Doxyfile model.c model.h sampler.c sampler.h abc.h README.md
 build $dir_doc/refman.pdf : doc-pdf $dir_doc/Makefile
+
+default infer
+build test: phony test_abc
+build doc: phony $dir_doc/refman.pdf

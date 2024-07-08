@@ -4,9 +4,13 @@
    @brief Model with parameters to calibrate using MPI-ABC.
  */
 
+#include <math.h>
 #include <stdio.h>
 
+#include <model.h>
+
 #include <gsl/gsl_errno.h>
+#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_odeiv2.h>
 
@@ -14,15 +18,30 @@
 /**
    The classic predator-prey ordinary differential equation (ODE) model.
 
+   The formula used is:
+   \f{eqnarray*}{
+   {\displaystyle \frac{dx}{dt}} &=& \phantom{-}\alpha x -
+                                     \phantom{\delta}\beta xy \\
+   {\displaystyle \frac{dy}{dt}} &=& -\gamma y +
+                                      \delta \beta xy \\\\
+   \mathrm{where,}& \\
+   x &\equiv& \textrm{prey population density} \\
+   y &\equiv& \textrm{predator population density} \\
+   \alpha &\equiv& \textrm{prey natural growth rate} \\
+   \beta &\equiv& \textrm{prey interaction rate with predators} \\
+   \gamma &\equiv& \textrm{predator natural death rate} \\
+   \delta &\equiv& \textrm{predator interaction rate with prey} \\
+   \f}
+
    @param t Time variable necessary for the ODE solver but otherwise unused.
    @param y Equation RHS variables that are treated as read-only.
    @param dydt Equation LHS variables updated by the ODE solver.
    @param params_ Equation parameters stored in a
-   [`gsl_block`](https://www.gnu.org/software/gsl/doc/html/vectors.html).
+   [`gsl_vector`](https://www.gnu.org/software/gsl/doc/html/vectors.html).
    @return GSL_SUCCESS
  */
 int
-lotka_volterra(double t, const double y[], double dydt[], void* params_) {
+lotka_volterra_eqs(double t, const double y[], double dydt[], void* params_) {
     (void)(t);			/* Suppress unused parameter warning. */
     gsl_vector* params = params_;
     double a = gsl_vector_get(params, 0);
@@ -37,18 +56,21 @@ lotka_volterra(double t, const double y[], double dydt[], void* params_) {
 }
 
 
+/**
+   Solve the two predator-prey ordinary differential equations (ODEs).
+
+   @param outcomes Matrix with columns containing time and equation outcomes.
+   @param params Equation parameters.
+
+   @return GSL_SUCCESS or gsl_odeiv2_driver_apply() error
+
+   @see lotka_volterra_eqs()
+ */
 int
-main(void) {
-    gsl_vector* params = gsl_vector_alloc(4);
-    if (params == NULL) {
-	GSL_ERROR("could not allocate params", ENOMEM);
-    }
-    gsl_vector_set(params, 0, 1.00); /* a. */
-    gsl_vector_set(params, 1, 1.00); /* b (NB: detuned from 0.1). */
-    gsl_vector_set(params, 2, 1.50); /* c. */
-    gsl_vector_set(params, 3, 0.75); /* d. */
+lotka_volterra_run(gsl_matrix* outcomes, gsl_vector* params)
+{
     gsl_odeiv2_system model = {
-	lotka_volterra,		/* ODE function. */
+	lotka_volterra_eqs,	/* ODE function. */
 	NULL,			/* Derivative elements. */
 	2,			/* Number of equations. */
 	params			/* Pointer to parameters. */
@@ -62,18 +84,103 @@ main(void) {
     double t = 0.0, t_end = 15.0;
     double y[2] = { 10.0, 5.0 };
     
-    for (int i = 1; i <= 100; ++i) {
-	double ti = i * t_end / 100.0;
+    for (size_t i = 1; i <= outcomes->size1; ++i) {
+	double ti = i * t_end / outcomes->size1;
 	int status = gsl_odeiv2_driver_apply(driver, &t, ti, y);
 	if (status != GSL_SUCCESS) {
 	    gsl_odeiv2_driver_free(driver);
-	    gsl_vector_free(params);
 	    GSL_ERROR("ODE failed", status);
 	}
-	printf("%.5e %.5e %.5e\n", t, y[0], y[1]);
+	gsl_matrix_set(outcomes, i - 1, 0, t);
+	gsl_matrix_set(outcomes, i - 1, 1, y[0]);
+	gsl_matrix_set(outcomes, i - 1, 2, y[1]);
     }
 
     gsl_odeiv2_driver_free(driver);
-    gsl_vector_free(params);
-    return 0;
+    return GSL_SUCCESS;
+}
+
+
+/**
+   Closed form constant of the implicit relationship between the variables.
+
+   The formula used is:
+   \f{eqnarray*}{
+   V&=& \delta x - \gamma \ln(x)+ \\
+     && \beta y - \alpha \ln(y) \\
+   \mathrm{where,}& \\
+   x &\equiv& \textrm{prey population density} \\
+   y &\equiv& \textrm{predator population density} \\
+   \alpha &\equiv& \textrm{prey natural growth rate} \\
+   \beta &\equiv& \textrm{prey interaction rate with predators} \\
+   \gamma &\equiv& \textrm{predator natural death rate} \\
+   \delta &\equiv& \textrm{predator interaction rate with prey} \\
+   \f}
+
+   @param y0 Value of the prey variable at a timepoint.
+   @param y1 Value of the predator variable at the same timepoint.
+   @param params Unchaging parameters for all timepoints.
+
+   @return V constant
+
+   @see lotka_volterra_eqs()
+ */
+double
+lotka_volterra_verify(double y0, double y1, gsl_vector* params)
+{
+  double a = gsl_vector_get(params, 0);
+  double b = gsl_vector_get(params, 1);
+  double c = gsl_vector_get(params, 2);
+  double d = gsl_vector_get(params, 3);
+
+  return d * y0 - c * log(y0) + b * y1 - a * log(y1);
+}
+
+
+/**
+   Return single distance for each parameter.
+
+   @see lotka_volterra_run()
+ */
+void
+lotka_volterra_sum_stat(gsl_matrix* distances, gsl_matrix* outcomes) {
+  (void)distances;
+  (void)outcomes;
+}
+
+
+/**
+   Run model and return distance to the abc_smc() sampler.
+
+   @see abc_smc()
+ */
+double
+lotka_volterra_wrap(double x, void* params_) {
+  (void)x;
+  (void)params_;
+  return EXIT_FAILURE;
+}
+
+
+/**
+   Fix all parameters from distributions.
+ */
+double
+param_sample(const gsl_rng* r, param_t* param) {
+  if (param->distr == NULL) {
+    return param->distr_hyperparams[0];
+  }
+  gsl_ran_function* func = param->distr;
+  switch (param->n_hyperparams) {
+  case 0:
+    return func->func0p(r);
+  case 1:
+    return func->func1p(r,
+			param->distr_hyperparams[0]);
+  case 2:
+    return func->func2p(r,
+			param->distr_hyperparams[0],
+			param->distr_hyperparams[1]);
+  }
+  return EXIT_FAILURE;
 }
