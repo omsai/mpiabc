@@ -116,7 +116,7 @@ START_TEST(test_param_sample)
   param.n_hyperparams = 100;
   for (int i = 0; i < repeats; ++i) {
     sample = param_sample(rng, &param);
-    ck_assert_double_eq(sample, EXIT_FAILURE);
+    ck_assert_double_nan(sample);
   }
 
   /* Cleanup. */

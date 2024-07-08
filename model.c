@@ -163,7 +163,14 @@ lotka_volterra_wrap(double x, void* params_) {
 
 
 /**
-   Fix all parameters from distributions.
+   Draw a parameter from its probability distribution or its fixed value.
+
+   @param r GSL random number generator to sample from a probability
+          distribution.
+   @param param Container for fixed vaues or a probability distribution.
+
+   @return A sample from the probability distribution support or NAN if
+           param.distr != NULL and param.n_hypermarameters is not within [0, 2].
  */
 double
 param_sample(const gsl_rng* r, param_t* param) {
@@ -182,5 +189,5 @@ param_sample(const gsl_rng* r, param_t* param) {
 			param->distr_hyperparams[0],
 			param->distr_hyperparams[1]);
   }
-  return EXIT_FAILURE;
+  return NAN;
 }
