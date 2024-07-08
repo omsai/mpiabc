@@ -9,12 +9,11 @@
 #include <check.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_randist.h>
 #include <gsl/gsl_vector.h>
 
 
-/**
-   Unit test ODE model.
- */
+/** Unit test ODE model. */
 START_TEST(test_ode)
 {
   /* Allocate model params vector and outcome matrix. */
@@ -51,9 +50,81 @@ START_TEST(test_ode)
 }
 
 
-/**
-   Unit test the kernel density estimate.
- */
+/** Unit test parameter container. */
+START_TEST(test_param_sample)
+{
+  /* Allocate the pseudo-random number generator. */
+  gsl_rng* rng = NULL;
+  rng = gsl_rng_alloc(gsl_rng_taus);
+  ck_assert_ptr_nonnull(rng);
+
+  /* Fixed parameters. */
+  double hyperparams[] = {1.0, 2.0, 3.0};
+  param_t param = {"a", NULL, hyperparams, -999};
+  double sample;
+  const int repeats = 1000;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_eq(sample, hyperparams[0]);
+  }
+  hyperparams[0] = 2.3;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_eq(sample, hyperparams[0]);
+  }
+
+  /* No hyperparameter distribution. */
+  gsl_ran_function distr;
+  distr.func0p = gsl_ran_landau;
+  param.distr = &distr;
+  param.distr_hyperparams = NULL;
+  param.n_hyperparams = 0;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_nonnan(sample);
+    ck_assert_double_finite(sample);
+  }
+
+  /* Single hyperparameter distribution. */
+  distr.func1p = gsl_ran_exponential;
+  param.distr = &distr;
+  hyperparams[0] = 1.5;
+  param.distr_hyperparams = hyperparams;
+  param.n_hyperparams = 1;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_nonnan(sample);
+    ck_assert_double_finite(sample);
+    ck_assert_double_ge(sample, 0.0);
+  }
+
+  /* Double hyperparameter distribution. */
+  distr.func2p = gsl_ran_beta;
+  hyperparams[0] = 2;
+  hyperparams[1] = 5;
+  param.distr_hyperparams = hyperparams;
+  param.n_hyperparams = 2;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_nonnan(sample);
+    ck_assert_double_finite(sample);
+    ck_assert_double_ge(sample, 0.0);
+    ck_assert_double_le(sample, 1.0);
+  }
+
+  /* Undefined number of hyperparameters. */
+  param.n_hyperparams = 100;
+  for (int i = 0; i < repeats; ++i) {
+    sample = param_sample(rng, &param);
+    ck_assert_double_eq(sample, EXIT_FAILURE);
+  }
+
+  /* Cleanup. */
+  gsl_rng_free(rng);
+}
+
+
+/** Unit test the kernel density estimate. */
 START_TEST(test_kde)
 {
   /* Populate a bimodal gaussian distribution using the Wikipedia example:
@@ -94,9 +165,7 @@ START_TEST(test_kde)
 END_TEST
 
 
-/**
-   Aggregate all unit tests into a suite.
- */
+/** Aggregate all unit tests into a suite. */
 Suite*
 suite_abc(void)
 {
@@ -106,14 +175,13 @@ suite_abc(void)
   suite_add_tcase(s, tc_model);
   TCase *tc_sampler = tcase_create("sampler");
   tcase_add_test(tc_sampler, test_kde);
+  tcase_add_test(tc_sampler, test_param_sample);
   suite_add_tcase(s, tc_sampler);
   return s;
 }
 
 
-/**
-   Run unit tests.
- */
+/** Run unit tests. */
 int
 main(void)
 {
