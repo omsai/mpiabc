@@ -41,6 +41,7 @@ spack add doxygen
 spack add ninja
 # For tests
 spack add check
+spack add py-gcovr
 spack concretize
 spack install
 ```

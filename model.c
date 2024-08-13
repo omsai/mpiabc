@@ -87,10 +87,10 @@ lotka_volterra_run(gsl_matrix* outcomes, gsl_vector* params)
     for (size_t i = 1; i <= outcomes->size1; ++i) {
 	double ti = i * t_end / outcomes->size1;
 	int status = gsl_odeiv2_driver_apply(driver, &t, ti, y);
-	if (status != GSL_SUCCESS) {
+	if (status != GSL_SUCCESS) { // GCOVR_EXCL_START
 	    gsl_odeiv2_driver_free(driver);
 	    GSL_ERROR("ODE failed", status);
-	}
+	} // GCOVR_EXCL_STOP
 	gsl_matrix_set(outcomes, i - 1, 0, t);
 	gsl_matrix_set(outcomes, i - 1, 1, y[0]);
 	gsl_matrix_set(outcomes, i - 1, 2, y[1]);

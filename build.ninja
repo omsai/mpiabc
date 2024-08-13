@@ -27,7 +27,8 @@ $cflags $
 
 ldflags_test = $
 $ldflags_exe $
--lcheck
+-lcheck $
+--coverage
 
 dir_doc = latex
 
@@ -43,6 +44,12 @@ rule lib
 rule test
   command = gcc -o $out $in $cflags_test $ldflags_test
 
+rule run
+  command = ./$in
+
+rule coverage
+  command = gcovr --delete --print-summary --txt $out
+
 rule doc-tex
   command = doxygen Doxyfile && sed -i '/\input{README_8md}/d' latex/refman.tex
 
@@ -56,9 +63,11 @@ build sampler.o : cc sampler.c
 build libabc.so : lib model.o sampler.o
 build infer : exe infer.o | libabc.so
 build test_abc : test model.c sampler.c test_abc.c | libabc.so
+build model.gcda sampler.gcda : run test_abc
+build coverage.txt : coverage model.gcda sampler.gcda
 build $dir_doc/Makefile : doc-tex Doxyfile model.c model.h sampler.c sampler.h abc.h README.md
 build $dir_doc/refman.pdf : doc-pdf $dir_doc/Makefile
 
 default infer
-build test: phony test_abc
+build test: phony coverage.txt
 build doc: phony $dir_doc/refman.pdf

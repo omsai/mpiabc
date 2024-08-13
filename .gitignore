@@ -4,6 +4,7 @@
 *.o
 *.so
 .ninja_log
+coverage.txt
 html/
 infer
 latex/
