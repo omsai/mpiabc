@@ -9,4 +9,6 @@ html/
 infer
 latex/
 model
+subprojects/check-*/
+subprojects/packagecache/
 test_abc
