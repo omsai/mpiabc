@@ -1,3 +1,8 @@
+/*
+  Copyright (c) 2024, Pariksheet Nanda
+
+  SPDX-License-Identifier: Apache-2.0
+*/
 #ifndef MPIABC_MODEL_H
 #define MPIABC_MODEL_H
 

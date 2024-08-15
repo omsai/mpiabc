@@ -2,6 +2,10 @@
    @file sampler.c
 
    @brief Sample parameters.
+
+   Copyright (c) 2024, Pariksheet Nanda
+
+   SPDX-License-Identifier: Apache-2.0
  */
 
 #include <math.h>
