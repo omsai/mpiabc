@@ -14,7 +14,7 @@ check_dep = dependency('check',
 text_exe = executable('test_abc', 'test_abc.c',
                       link_with : libabc,
                       dependencies : [gsl_dep, check_dep])
-test('./test_abc', text_exe)
+test('test_abc', text_exe)
 
 conf_data = configuration_data()
 conf_data.set('INCLUDE_PWD', meson.project_source_root())
