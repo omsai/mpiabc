@@ -34,7 +34,6 @@ main() {
   gsl_function model_f;
   model_f.function = &lotka_volterra_wrap;
   model_f.params = &params;
-  (void)model_f;
 
   gsl_function kernel_f;
   kernel_f.function = &kde;
