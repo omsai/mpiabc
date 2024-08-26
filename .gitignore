@@ -1,14 +1,3 @@
-*.gcda
-*.gcno
-*.gcov
-*.o
-*.so
-.ninja_log
-coverage.txt
-html/
-infer
-latex/
-model
+.dir-locals.el
 subprojects/check-*/
 subprojects/packagecache/
-test_abc
